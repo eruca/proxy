@@ -2,8 +2,12 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -18,11 +22,38 @@ var (
 	pOpenProxy = flag.Bool("s", false, "unset the proxy")
 )
 
+func findPath(app string) (string, error) {
+	paths := os.Getenv("PATH")
+
+	for _, p := range strings.Split(paths, path_sep) {
+		entris, err := os.ReadDir(p)
+		if err != nil {
+			continue
+		}
+		for _, ent := range entris {
+			if ent.IsDir() {
+				continue
+			}
+			if ent.Name() == app {
+				return p, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("app not found: %s", app)
+}
+
 func main() {
 	flag.Parse()
 
+	appName := os.Args[0]
+	p, err := findPath(appName)
+	if err != nil {
+		// 如果没有找到，就是在local, Getwd
+		p, _ = os.Getwd()
+	}
+
 	var config Config
-	if _, err := toml.DecodeFile(*configFile, &config); err != nil {
+	if _, err := toml.DecodeFile(filepath.Join(p, *configFile), &config); err != nil {
 		log.Fatal("toml.DecodeFile failed: ", err)
 	}
 
