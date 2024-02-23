@@ -1,0 +1,2 @@
+app = "/Applications/Ghelper.app"
+server_url = "sock://127.0.0.1:9981"

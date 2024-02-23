@@ -4,30 +4,39 @@ import (
 	"flag"
 	"log"
 	"os/exec"
+
+	"github.com/BurntSushi/toml"
 )
 
-const server_port = "sock://127.0.0.1:9981"
+type Config struct {
+	App       string `toml:"app"`
+	ServerUrl string `toml:"server_url"`
+}
 
-var pOpenProxy = flag.Bool("s", false, "unset the proxy")
+var (
+	configFile = flag.String("f", "config.toml", "配置文件TOML位置")
+	pOpenProxy = flag.Bool("s", false, "unset the proxy")
+)
 
 func main() {
 	flag.Parse()
 
-	// Specify the application path
-	appPath := "/Applications/Ghelper.app" // Replace this with the path to the application you want to open
+	var config Config
+	if _, err := toml.DecodeFile(*configFile, &config); err != nil {
+		log.Fatal("toml.DecodeFile failed: ", err)
+	}
 
 	if !*pOpenProxy {
-
 		// Open the application
-		cmd := exec.Command("open", "-a", appPath)
+		cmd := exec.Command("open", "-a", config.App)
 		err := cmd.Start()
 		if err != nil {
 			panic(err)
 		}
-		if err := exec.Command("git", "config", "--global", "http.proxy", server_port).Run(); err != nil {
+		if err := exec.Command("git", "config", "--global", "http.proxy", config.ServerUrl).Run(); err != nil {
 			panic(err)
 		}
-		if err := exec.Command("git", "config", "--global", "https.proxy", server_port).Run(); err != nil {
+		if err := exec.Command("git", "config", "--global", "https.proxy", config.ServerUrl).Run(); err != nil {
 			panic(err)
 		}
 		log.Println("Set Successed")
