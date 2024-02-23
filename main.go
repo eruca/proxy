@@ -14,7 +14,7 @@ type Config struct {
 }
 
 var (
-	configFile = flag.String("f", "config.toml", "配置文件TOML位置")
+	configFile = flag.String("f", "proxy.toml", "配置文件TOML位置")
 	pOpenProxy = flag.Bool("s", false, "unset the proxy")
 )
 
